@@ -93,21 +93,24 @@
                 originalPrice: "Rp 250.000",
                 promoPrice: "Rp 150.000",
                 image: "assets/kalkulator.png",
-                description: "bisa excel, bisa matrix, bisa semua hal di dunia ini."
+                description: "bisa excel, bisa matrix, bisa semua hal di dunia ini.",
+                status: false
             },
             {
                 name: "Keranjang Warna Warni",
                 originalPrice: "Rp 30.000",
                 promoPrice: "Rp 15.000",
                 image: "assets/keranjang.png",
-                description: "lumayan gede, bisa buat naro galon dsb., rekomen pokoknya"
+                description: "lumayan gede, bisa buat naro galon dsb., rekomen pokoknya",
+                status: true
             },
             {
                 name: "Pangkat Tingkat III",
                 originalPrice: "Rp 20.000",
                 promoPrice: "Rp 5.000",
                 image: "assets/pangkat.png",
-                description: "fresh banget blm pernah dipake"
+                description: "fresh banget blm pernah dipake",
+                status: false
             },
          /*   {
                 name: "Item Modern C",
@@ -148,7 +151,7 @@
             */
         ];
 
-         // --- LOGIKA APLIKASI ---
+      // --- LOGIKA APLIKASI ---
         document.addEventListener('DOMContentLoaded', () => {
             const productGrid = document.getElementById('product-grid');
             const modalContainer = document.getElementById('modal-container');
@@ -156,20 +159,35 @@
             // 1. Menampilkan semua produk ke dalam grid
             products.forEach((product, index) => {
                 const card = document.createElement('div');
-                card.className = 'product-card bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full sm:w-64 md:w-72 cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20';
-                card.dataset.index = index; // Menambahkan data index untuk identifikasi
+                const isSoldOut = product.status === false;
 
-                // Logika untuk menampilkan harga promo atau harga normal
+                let cardClasses = 'product-card bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full sm:w-64 md:w-72 cursor-pointer transition-transform duration-300';
+                if (!isSoldOut) {
+                    cardClasses += ' hover:scale-105 hover:shadow-cyan-500/20';
+                }
+                
+                card.className = cardClasses;
+                card.dataset.index = index;
+
                 const priceHTML = product.promoPrice
                     ? `<div class="flex items-baseline gap-2 mt-2">
                            <p class="text-lg text-cyan-400 font-semibold">${product.promoPrice}</p>
                            <p class="text-sm text-gray-500 line-through">${product.originalPrice}</p>
                        </div>`
                     : `<p class="text-lg text-gray-300 mt-2">${product.price || ''}</p>`;
+                
+                const soldOutOverlay = isSoldOut
+                    ? `<div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-t-lg">
+                           <span class="text-white text-xl font-bold border-2 border-white px-4 py-2 rounded">SOLD OUT</span>
+                       </div>`
+                    : '';
 
                 card.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}" class="w-full h-56 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x600/1f2937/ffffff?text=Image+Not+Found';">
-                    <div class="p-5">
+                    <div class="relative">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-56 object-cover ${isSoldOut ? 'filter grayscale' : ''}" onerror="this.onerror=null;this.src='https://placehold.co/600x600/1f2937/ffffff?text=Image+Not+Found';">
+                        ${soldOutOverlay}
+                    </div>
+                    <div class="p-5 ${isSoldOut ? 'opacity-60' : ''}">
                         <h3 class="text-xl font-semibold tracking-tight">${product.name}</h3>
                         ${priceHTML}
                     </div>
@@ -179,7 +197,8 @@
 
             // 2. Fungsi untuk menampilkan modal
             const showModal = (product) => {
-                // Logika untuk menampilkan harga promo atau harga normal di modal
+                const isSoldOut = product.status === false;
+
                 const modalPriceHTML = product.promoPrice
                     ? `<div class="flex items-baseline gap-3 my-3">
                            <p class="text-3xl text-cyan-400 font-bold">${product.promoPrice}</p>
@@ -187,17 +206,26 @@
                        </div>`
                     : `<p class="text-2xl text-gray-300 my-3">${product.price || ''}</p>`;
 
+                const whatsappButton = isSoldOut
+                    ? `<button disabled class="mt-4 inline-flex items-center justify-center w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-gray-400 bg-gray-700 cursor-not-allowed">
+                           Stok Habis
+                       </button>`
+                    : `<a href="${tautanWhatsApp}" target="_blank" class="mt-4 inline-flex items-center justify-center w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-green-500 transition-colors duration-300">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01s-.521.074-.792.372c-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                           <span>Hubungi via WhatsApp</span>
+                       </a>`;
+
                 modalContainer.innerHTML = `
                     <div class="modal-card bg-gray-800 rounded-lg shadow-2xl w-full max-w-lg mx-auto overflow-hidden relative" onclick="event.stopPropagation()">
-                        <img src="${product.image}" alt="${product.name}" class="w-full h-72 object-contain bg-gray-900" onerror="this.onerror=null;this.src='https://placehold.co/600x600/1f2937/ffffff?text=Image+Not+Found';">
+                        <div class="relative">
+                           <img src="${product.image}" alt="${product.name}" class="w-full h-72 object-contain bg-gray-900 ${isSoldOut ? 'filter grayscale' : ''}" onerror="this.onerror=null;this.src='https://placehold.co/600x600/1f2937/ffffff?text=Image+Not+Found';">
+                           ${isSoldOut ? '<div class="absolute inset-0 bg-black bg-opacity-40"></div>' : ''}
+                        </div>
                         <div class="p-6">
                             <h2 class="text-3xl font-bold">${product.name}</h2>
                             ${modalPriceHTML}
                             <p class="text-gray-400 text-base mt-4 mb-6">${product.description || ''}</p>
-                            <a href="${tautanWhatsApp}" target="_blank" class="mt-4 inline-flex items-center justify-center w-full px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-green-500 transition-colors duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01s-.521.074-.792.372c-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                                <span>Hubungi via WhatsApp</span>
-                            </a>
+                            ${whatsappButton}
                         </div>
                     </div>
                 `;
